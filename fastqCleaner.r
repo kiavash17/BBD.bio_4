@@ -1,0 +1,5 @@
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+BiocManager::install("FastqCleaner")
+# install.packages("BiocManager", lib = Sys.getenv("R_LIBS_USER"))
+# BiocManager::install("FastqCleaner", lib = Sys.getenv("R_LIBS_USER"))
