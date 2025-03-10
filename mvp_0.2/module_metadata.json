@@ -1,0 +1,87 @@
+[
+    {
+        "name": "FastQC",
+        "version": "0.11.9",
+        "language": "Java",
+        "dependencies": [
+            "Java >= 8"
+        ],
+        "input": [
+            "raw_reads.fastq.gz"
+        ],
+        "output": [
+            "fastqc_report.html",
+            "fastqc_data.txt"
+        ],
+        "execution": "fastqc raw_reads.fastq.gz",
+        "test_case": "test_data/example_reads.fastq.gz"
+    },
+    {
+        "name": "BWA",
+        "version": "0.7.17",
+        "language": "C",
+        "dependencies": [
+            "bwa"
+        ],
+        "input": [
+            "reference.fasta",
+            "reads.fastq.gz"
+        ],
+        "output": [
+            "aligned_reads.sam"
+        ],
+        "execution": "bwa mem reference.fasta reads.fastq.gz > aligned_reads.sam",
+        "test_case": "test_data/example_reads.fastq.gz"
+    },
+    {
+        "name": "GATK",
+        "version": "4.2.0.0",
+        "language": "Java",
+        "dependencies": [
+            "Java >= 8",
+            "gatk"
+        ],
+        "input": [
+            "aligned_reads.bam",
+            "reference.fasta"
+        ],
+        "output": [
+            "variants.vcf"
+        ],
+        "execution": "gatk HaplotypeCaller -I aligned_reads.bam -R reference.fasta -O variants.vcf",
+        "test_case": "test_data/example_aligned_reads.bam"
+    },
+    {
+        "name": "Biopython",
+        "version": "1.81",
+        "language": "Python",
+        "dependencies": [
+            "biopython"
+        ],
+        "input": [
+            "sequences.fasta"
+        ],
+        "output": [
+            "parsed_sequences.json"
+        ],
+        "execution": "python parse_sequences.py sequences.fasta",
+        "test_case": "test_data/example_sequences.fasta"
+    },
+    {
+        "name": "Bioconductor",
+        "version": "3.15",
+        "language": "R",
+        "dependencies": [
+            "R >=4.0",
+            "BiocManager"
+        ],
+        "input": [
+            "expression_matrix.csv"
+        ],
+        "output": [
+            "differential_expression_results.csv"
+        ],
+        "execution": "Rscript run_bioconductor.R expression_matrix.csv",
+        "test_case": "test_data/example_expression_matrix.csv"
+    }
+]
