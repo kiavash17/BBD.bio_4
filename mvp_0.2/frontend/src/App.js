@@ -15,7 +15,7 @@ function App() {
     }
 
     try {
-      const res = await axios.post('https://your-backend-api.com/generate-workflow', { request: userRequest, automation: automationLevel });
+      const res = await axios.post('https://orange-broccoli-54776gp7wv7379g6-5000.app.github.dev/', { request: userRequest, automation: automationLevel });
       setWorkflow(res.data.workflow);
     } catch (error) {
       console.error('Error generating workflow:', error);
@@ -29,7 +29,7 @@ function App() {
     }
 
     try {
-      const res = await axios.post('https://your-backend-api.com/execute-workflow', { workflow });
+      const res = await axios.post('https://orange-broccoli-54776gp7wv7379g6-5000.app.github.dev/', { workflow });
       setRunStatus(res.data.status);
     } catch (error) {
       console.error('Error executing workflow:', error);
