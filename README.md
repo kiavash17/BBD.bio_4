@@ -54,23 +54,31 @@ For development or debugging, ensure SQLite and dependencies are installed prope
 
 
 ------------update on 3/12/2025---------------
-📌 Project Overview
-Project Name: BBD.bio Lab AI Orchestrator
-Goal: Automate and streamline NGS bioinformatics workflow generation, refinement, and execution using AI.
-Why? Reduce manual workflow configuration, optimize computational resource usage, and improve accessibility for non-experts.
+# BBD.bio Lab AI Orchestrator
 
-🛠️ System Architecture Overview
-📌 Components and Responsibilities
+### **📌 Update on 3/12/2025**
 
-Component	Role
-AIOrchestrator	Generates, refines, and executes bioinformatics workflows using OpenAI API.
-Run Management	Manages workflow execution, logging, tracking, and directory setup.
-Module Database	Stores available workflow modules and syncs missing module requests.
-User Interface (CLI/API)	Provides a user interface for interacting with the orchestrator.
-📂 Codebase Structure
-bash
-Copy
-Edit
+## **Project Overview**
+- **Project Name:** BBD.bio Lab AI Orchestrator  
+- **Goal:** Automate and streamline NGS bioinformatics workflow generation, refinement, and execution using AI.  
+- **Why?** Reduce manual workflow configuration, optimize computational resource usage, and improve accessibility for non-experts.
+
+---
+
+## **🛠️ System Architecture Overview**
+### **📌 Components and Responsibilities**
+
+| **Component**       | **Role** |
+|---------------------|---------|
+| **AIOrchestrator** | Generates, refines, and executes bioinformatics workflows using OpenAI API. |
+| **Run Management** | Manages workflow execution, logging, tracking, and directory setup. |
+| **Module Database** | Stores available workflow modules and syncs missing module requests. |
+| **User Interface (CLI/API)** | Provides a user interface for interacting with the orchestrator. |
+
+---
+
+## **📂 Codebase Structure**
+```bash
 /src
   ├── ai_orchestrator/               # AI-driven workflow orchestration
   │     ├── ai_orchestrator.py       # Main AI-based workflow generator
@@ -82,9 +90,4 @@ Edit
 /tests
   ├── test_ai_orchestrator.py          # Unit tests for AI workflow generator
   ├── test_run_management.py           # Tests for workflow execution
-🔑 Key Features Implemented
-✅ AI-powered workflow generation
-✅ AI-assisted workflow refinement
-✅ Integration with module database for bioinformatics tools
-✅ Execution tracking and logging
-✅ CLI-based interaction
+
