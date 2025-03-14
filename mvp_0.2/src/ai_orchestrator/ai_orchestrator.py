@@ -9,6 +9,7 @@ from src.run_management.run_tracking import log_run
 from src.run_management.directory_manager import setup_run_directory, move_input_files
 from src.run_management.cli_run_manager import create_run
 
+
 logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s", force=True)
 
 MODULE_DATABASE_URL = "https://orange-broccoli-54776gp7wv7379g6-5000.app.github.dev/module-database"
@@ -43,14 +44,21 @@ class AIOrchestrator:
         """Generates a workflow based on user input, checking available modules dynamically."""
         self.module_database = self.fetch_module_data()  # Ensure the module database is up-to-date
         available_modules = list(self.module_database.keys())
+        existing_tickets = self.fetch_module_tickets()
+        
 
         prompt = f"""
         You are an AI bioinformatics orchestrator. Based on the user's request:
         {user_request}
         Generate a workflow using the best-known bioinformatics tools.
-        Use the following available modules: {available_modules}
-        If a required module does not exist, note it separately.
+        Use the following available modules: {available_modules} or pending modules: {existing_tickets} . 
+
+        If a required module does not exist include it in the 'missing_modules' list. 
+
+
+        Return the output **strictly as a JSON object** with keys 'workflow' and 'missing_modules'.
         """
+        logging.debug(f"🔍 kk: full prompt was: {prompt}")
 
         response = self.client.chat.completions.create(
             messages=[{"role": "user", "content": prompt}],
@@ -58,9 +66,20 @@ class AIOrchestrator:
         )
 
         try:
-            workflow_data = json.loads(response.choices[0].message.content)
+            raw_response = response.choices[0].message.content.strip()
+            logging.debug(f"🔍 AI Raw Response: {raw_response}")
+            # Remove markdown code block formatting if present
+            if raw_response.startswith("```json") and raw_response.endswith("```"):
+                raw_response = raw_response[7:-3].strip()  # Remove ```json and ``` 
+            try:
+                workflow_data = json.loads(raw_response)
+            except json.JSONDecodeError as e:
+                logging.error(f"🚨 JSON Parsing Error: {e}")
+                return {"error": "AI response was not valid JSON.", "raw_response": raw_response}
             workflow = workflow_data.get("workflow", {})
             missing_modules = workflow_data.get("missing_modules", [])
+            logging.debug(f"🔍 existing tickets were: {existing_tickets}")
+            logging.debug(f"🔍 AI returned missing modules as: {missing_modules}")
 
             for module in missing_modules:
                 logging.warning(f"⚠️ Missing module detected: {module}")
@@ -71,6 +90,19 @@ class AIOrchestrator:
         except json.JSONDecodeError as e:
             logging.error(f"🚨 Failed to parse AI response: {str(e)}")
             return {"workflow": {}, "missing_modules": []}  # Ensure test compatibility
+        
+    def fetch_module_tickets(self):
+        """Fetch all existing module tickets from the database."""
+        try:
+            response = requests.get(f"{MODULE_DATABASE_URL}/module-tickets", timeout=10)
+            if response.status_code == 200:
+                return [ticket["module_name"] for ticket in response.json()]
+            else:
+                logging.error(f"⚠️ Failed to fetch module tickets: {response.status_code} - {response.text}")
+                return []
+        except requests.RequestException as e:
+            logging.error(f"🚨 Error fetching module tickets: {str(e)}")
+            return []
 
     def create_module_ticket(self, module_name):
         """Logs a ticket for a missing module and syncs it with the backend database."""

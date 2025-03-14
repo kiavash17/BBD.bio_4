@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import './App.css';
 
+const backend_url = 'https://orange-broccoli-54776gp7wv7379g6-5000.app.github.dev'
+
 function App() {
   const [userRequest, setUserRequest] = useState('');
   const [workflow, setWorkflow] = useState(null);
@@ -15,7 +17,11 @@ function App() {
     }
 
     try {
-      const res = await axios.post('https://orange-broccoli-54776gp7wv7379g6-5000.app.github.dev/', { request: userRequest, automation: automationLevel });
+      const res = await axios.post(
+        backend_url + '/generate-workflow', 
+        { request: userRequest, automation: automationLevel }, 
+        { withCredentials: true }
+      );
       setWorkflow(res.data.workflow);
     } catch (error) {
       console.error('Error generating workflow:', error);
@@ -29,7 +35,7 @@ function App() {
     }
 
     try {
-      const res = await axios.post('https://orange-broccoli-54776gp7wv7379g6-5000.app.github.dev/', { workflow });
+      const res = await axios.post(backend_url, { workflow });
       setRunStatus(res.data.status);
     } catch (error) {
       console.error('Error executing workflow:', error);
