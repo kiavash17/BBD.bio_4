@@ -82,8 +82,8 @@ def generate_workflow():
     
     try:
         logging.debug("kk call sent to orchestrator.")
-        workflow = orchestrator.generate_workflow(user_request)
-        return jsonify({"workflow": workflow})
+        workflow_plus_missing = orchestrator.generate_workflow(user_request)
+        return jsonify(workflow_plus_missing)
     except Exception as e:
         return jsonify({"error": f"Failed to generate workflow: {str(e)}"}), 500
 
@@ -92,8 +92,8 @@ def generate_workflow():
 def execute_workflow():
     data = request.get_json()
     workflow = data.get('workflow')
-    base_path = data.get('base_path', "/tmp")  # Default to /tmp if not specified
-    
+    base_path = data.get('base_path', "/workspaces/BBD.bio_4/mvp_0.2")  # Default to /tmp if not specified
+    logging.debug(f"🚗 workflow is : {workflow}, using path: {base_path} ")
     if not workflow:
         return jsonify({"error": "No workflow provided"}), 400
     

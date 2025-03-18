@@ -146,7 +146,7 @@ class AIOrchestrator:
     def execute_workflow(self, workflow, base_path):
         """Executes the workflow step-by-step."""
         input_files = []  # This should come from the user request
-        if not workflow.get("steps"):
+        if not workflow:
             logging.error("🚨 No steps found in workflow. Execution aborted.")
             return None
 
@@ -154,7 +154,7 @@ class AIOrchestrator:
         run_dir = setup_run_directory(base_path, run_id)
         move_input_files(input_files, os.path.join(run_dir, "input"))
 
-        for step in workflow["steps"]:
+        for step in workflow:  # No longer using workflow["steps"]
             module_name = step.get("module")
             params = step.get("params", {})
 

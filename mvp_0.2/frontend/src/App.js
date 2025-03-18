@@ -22,7 +22,7 @@ function App() {
         { request: userRequest, automation: automationLevel }, 
         { withCredentials: true }
       );
-      setWorkflow(res.data.workflow);
+      setWorkflow(res.data);
     } catch (error) {
       console.error('Error generating workflow:', error);
     }
@@ -35,7 +35,11 @@ function App() {
     }
 
     try {
-      const res = await axios.post(backend_url, { workflow });
+      const res = await axios.post(
+        backend_url + '/execute-workflow', 
+        { workflow: workflow.workflow }, 
+        { withCredentials: true }
+      );
       setRunStatus(res.data.status);
     } catch (error) {
       console.error('Error executing workflow:', error);
