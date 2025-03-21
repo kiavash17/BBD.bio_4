@@ -29,12 +29,6 @@ orchestrator = AIOrchestrator(API_KEY)
 @app.before_request
 def log_request_info():
     logging.debug(f"🛠 Incoming request: {request.method} {request.path}")
-    # logging.debug(f"🔎 Headers: {dict(request.headers)}")
-    # logging.debug(f"🔐 Cookies: {request.cookies}")
-    # logging.debug(f"📡 Origin: {request.origin if 'Origin' in request.headers else 'None'}")
-    # logging.debug(f"🔄 Credentials Sent: {'Cookie' in request.headers or 'Authorization' in request.headers}")
-    # if request.method == "OPTIONS":
-    #     logging.warning(f"🚨 CORS preflight request from {request.headers.get('Origin')} to {request.path}")
 
 @app.after_request
 def add_cors_headers(response):
@@ -57,7 +51,7 @@ def init_db():
                 description TEXT,
                 input_format TEXT,
                 output_format TEXT,
-                environment TEXT  -- Python, R, Shell, Docker, Conda
+                environment TEXT
             )
         ''')
         c.execute('''
@@ -76,10 +70,10 @@ def generate_workflow():
     logging.debug("kk generate-workflow initialized.")
     data = request.get_json()
     user_request = data.get('request')
-    
+
     if not user_request:
         return jsonify({"error": "Missing user request"}), 400
-    
+
     try:
         logging.debug("kk call sent to orchestrator.")
         workflow_plus_missing = orchestrator.generate_workflow(user_request)
@@ -92,11 +86,11 @@ def generate_workflow():
 def execute_workflow():
     data = request.get_json()
     workflow = data.get('workflow')
-    base_path = data.get('base_path', "/workspaces/BBD.bio_4/mvp_0.2")  # Default to /tmp if not specified
+    base_path = data.get('base_path', "/workspaces/BBD.bio_4/mvp_0.2")
     logging.debug(f"🚗 workflow is : {workflow}, using path: {base_path} ")
     if not workflow:
         return jsonify({"error": "No workflow provided"}), 400
-    
+
     try:
         run_id = orchestrator.execute_workflow(workflow, base_path)
         return jsonify({"status": f"Run {run_id} completed"})
@@ -104,10 +98,24 @@ def execute_workflow():
         return jsonify({"error": f"Workflow execution failed: {str(e)}"}), 500
 
 
+@app.route('/generate-snakefile', methods=['POST'])
+def generate_snakefile():
+    """Generates and returns a Snakemake workflow script from the confirmed workflow steps."""
+    data = request.get_json()
+    workflow = data.get("workflow")
+
+    if not workflow:
+        return jsonify({"error": "No workflow provided"}), 400
+
+    try:
+        snakemake_script = orchestrator.generate_snakemake_workflow(workflow)
+        return jsonify({"snakefile": snakemake_script})
+    except Exception as e:
+        return jsonify({"error": f"Snakemake generation failed: {str(e)}"}), 500
+
+
 @app.route('/module-database', methods=['GET', 'POST'])
 def module_database():
-    """Handle module retrieval (GET) and module addition (POST)."""
-
     if request.method == 'GET':
         try:
             with sqlite3.connect(DB_PATH) as conn:
@@ -123,7 +131,7 @@ def module_database():
                     }
                     for row in c.fetchall()
                 ]
-            return jsonify(modules), 200  # Return 200 status for successful retrieval
+            return jsonify(modules), 200
 
         except sqlite3.Error as e:
             logging.error(f"🚨 Database error: {str(e)}")
@@ -131,8 +139,6 @@ def module_database():
 
     elif request.method == 'POST':
         data = request.get_json()
-
-        # Validate input fields
         required_fields = ["name", "description", "input_format", "output_format", "environment"]
         if not all(field in data for field in required_fields):
             return jsonify({"error": "Missing required fields"}), 400
@@ -149,7 +155,7 @@ def module_database():
                 )
                 conn.commit()
 
-            return jsonify({"message": "Module added successfully"}), 201  # Return 201 status for successful insertion
+            return jsonify({"message": "Module added successfully"}), 201
 
         except sqlite3.IntegrityError:
             return jsonify({"error": "Module already exists"}), 400
@@ -158,18 +164,16 @@ def module_database():
             return jsonify({"error": f"Database error: {str(e)}"}), 500
 
 
-
 @app.route('/module-database/module-tickets', methods=['GET', 'POST'])
 def module_tickets():
-    """Handle module ticket retrieval (GET) and ticket creation (POST)."""
     if request.method == 'GET':
-        module_name = request.args.get("module_name")  # Optional filter
+        module_name = request.args.get("module_name")
         with sqlite3.connect(DB_PATH) as conn:
             c = conn.cursor()
             if module_name:
                 c.execute("SELECT module_name, reason, status FROM module_tickets WHERE module_name = ?", (module_name,))
             else:
-                c.execute("SELECT module_name, reason, status FROM module_tickets")  # Get all tickets
+                c.execute("SELECT module_name, reason, status FROM module_tickets")
 
             tickets = [{"module_name": row[0], "reason": row[1], "status": row[2]} for row in c.fetchall()]
         return jsonify(tickets)
@@ -191,7 +195,6 @@ def module_tickets():
 
 @app.route('/init-db', methods=['POST'])
 def initialize_database():
-    """Manually initialize the database via API call."""
     try:
         init_db()
         return jsonify({"message": "Database initialized successfully"}), 200
